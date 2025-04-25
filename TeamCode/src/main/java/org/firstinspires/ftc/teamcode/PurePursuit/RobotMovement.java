@@ -33,7 +33,6 @@ public class RobotMovement {
         lowerRotationalPID;
 
     /*-- Theta Interpolation --*/
-
     public enum ThetaInterpolation {
         TANGENTIAL,
         ANALOGICAL,
@@ -42,8 +41,11 @@ public class RobotMovement {
     }
 
     private ThetaInterpolation thetaInterpolation;
+
     private double
-        finalTargetTheta, realTranslationalEndDistance, realTranslationalStartDistance,
+        finalTargetTheta,
+        realTranslationalEndDistance,
+        realTranslationalStartDistance,
         realThetaStartDistance,
         realThetaEndDistance;
 
