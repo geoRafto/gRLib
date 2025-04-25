@@ -54,7 +54,8 @@ public class RobotMovement {
         isFinished,
         nullDetected,
         autoStartingPosition,
-        firstCycle;
+        firstCycle,
+        isReversed;
 
     private Vector currentTo_Point;
 
@@ -312,6 +313,10 @@ public class RobotMovement {
                 break;
         }
 
+        if (isReversed) {
+            finalTargetTheta = finalTargetTheta - 180;
+        }
+
         return finalTargetTheta;
     }
 
@@ -408,5 +413,9 @@ public class RobotMovement {
 
     public double getRealThetaEndDistance() {
         return realThetaEndDistance;
+    }
+
+    public void setReversed(boolean set) {
+        isReversed = set;
     }
 }
