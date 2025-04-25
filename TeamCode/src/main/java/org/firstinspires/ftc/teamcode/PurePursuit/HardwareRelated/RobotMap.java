@@ -13,15 +13,18 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.robot.Robot;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.Localization.GoBildaPinpointDriver;
 import org.jetbrains.annotations.NotNull;
 
 public class RobotMap {
 
     private DcMotorEx frontLeft, rearLeft, frontRight, rearRight;
     private IMU imu;
-    private Encoder par, perp;
+    private GoBildaPinpointDriver odo;
+    private GoBildaPinpointDriver.EncoderDirection strafeEncoderDirection, forwardEncoderDirection;
     private HardwareMap hm;
     private Telemetry telemetry;
+    private GoBildaPinpointDriver.GoBildaOdometryPods encoderRes;
 
     public RobotMap(HardwareMap hm) {
         this(hm, null);
@@ -61,10 +64,10 @@ public class RobotMap {
         imu.initialize(imuParameters);
 
         /*--Encoders--*/
-        par = new OverflowEncoder(new RawEncoder(hm.get(DcMotorEx.class, "rearRight")));
-        perp = new OverflowEncoder(new RawEncoder(hm.get(DcMotorEx.class, "frontLeft")));
-
-        perp.setDirection(DcMotorSimple.Direction.REVERSE);
+        odo = hm.get(GoBildaPinpointDriver.class, "odometry");
+        encoderRes = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
+        forwardEncoderDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
+        strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
         /*--Util--*/
         for (LynxModule module : hm.getAll(LynxModule.class)) {
@@ -90,12 +93,20 @@ public class RobotMap {
     }
 
     /*--Encoders--*/
-    public Encoder getParallel () {
-        return par;
+    public GoBildaPinpointDriver.GoBildaOdometryPods getEncoderRes() {
+        return encoderRes;
     }
 
-    public Encoder getPerpendicular () {
-        return perp;
+    public GoBildaPinpointDriver getOdometry() {
+        return odo;
+    }
+
+    public GoBildaPinpointDriver.EncoderDirection getStrafeEncoderDirection() {
+        return strafeEncoderDirection;
+    }
+
+    public GoBildaPinpointDriver.EncoderDirection getForwardEncoderDirection() {
+        return forwardEncoderDirection;
     }
 
     /*--Util--*/

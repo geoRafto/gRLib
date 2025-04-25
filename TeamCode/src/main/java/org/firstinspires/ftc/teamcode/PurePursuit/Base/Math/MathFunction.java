@@ -1,18 +1,11 @@
 package org.firstinspires.ftc.teamcode.PurePursuit.Base.Math;
 
-import org.firstinspires.ftc.robotcore.external.navigation.MotionDetection;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Pose;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Vector;
-import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.WayPoint;
-import org.opencv.core.Point;
+import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants;
 
 public class MathFunction {
 
-    /**
-     * Makes sure the range of the angle is within the limits of 180, -180 degrees
-     * @param angle
-     * @return
-     */
     public static double calculateAngleUnwrap(double angle) {
         while (angle < -180) {
             angle += 360;
@@ -35,21 +28,13 @@ public class MathFunction {
         return sum;
     }
 
-    /**
-     * Finds the x, y coordinates of the intersections between the circle and the current segment
-     * @param state
-     * @param radius
-     * @param start
-     * @param end
-     * @return
-     */
     public static Vector calculateCircleIntersection(Vector state, double radius,
                                                                      Vector start, Vector end) {
 
-        double[] d = {end.x - start.x, end.y - start.y};
+        double[] d = {end.getX() - start.getX(), end.getY() - start.getY()};
 
         // Calculate the differences in x, y between the robot's position and the segment's start
-        double[] f = {start.x - state.x, start.y - state.y};
+        double[] f = {start.getX() - state.getX(), start.getY() - state.getY()};
 
         // Coefficients for the quadratic equation (a*t^2 + b*t + c = 0)
         double a = dot(d, d);
@@ -73,22 +58,45 @@ public class MathFunction {
                 return null;
             }
 
-            double lx = start.x + t * d[0];
-            double ly = start.y + t * d[1];
+            double lx = start.getX() + t * d[0];
+            double ly = start.getY() + t * d[1];
 
             return new Vector(lx, ly);
         }
     }
 
-    /**
-     * Stopping condition for the robot's position
-     * @param currentPose
-     * @param targetPoint
-     * @return
-     */
-    public static boolean atTarget(Pose currentPose, WayPoint targetPoint) {
-        return Math.abs(targetPoint.pose.x - currentPose.x) <= targetPoint.threshold[0]
-            && Math.abs(targetPoint.pose.y - currentPose.y) <= targetPoint.threshold[0]
-            && Math.abs(targetPoint.pose.theta - currentPose.theta) <= targetPoint.threshold[1];
+    public static boolean atTarget(Pose currentPose, Pose targetPoint) {
+        return Math.abs(targetPoint.getX() - currentPose.getX()) <= RobotConstants.getX_Threshold()
+            && Math.abs(targetPoint.getY() - currentPose.getY()) <= RobotConstants.getY_Threshold()
+            && Math.abs(targetPoint.getTheta() - currentPose.getTheta()) <= RobotConstants.getTheta_Threshold();
+    }
+
+    public static double inToMM(double in) {
+        return in * 25.4;
+    }
+
+    public static double mmToIn(double mm) {
+        return mm / 25.4;
+    }
+
+    public static double normalizeAngle(double angleDegrees) {
+        double angle = angleDegrees % 360;
+        if (angle < 0) {
+            return angle + 360;
+        }
+        return angle;
+    }
+
+    public static double getSmallestAngleDifference(double one, double two) {
+        return Math.min(normalizeAngle(one - two), normalizeAngle(two - one));
+    }
+
+    public static Pose subtractPoses(Pose one, Pose two) {
+        return new Pose(one.getX() - two.getX(), one.getY() - two.getY(),
+                        one.getTheta() - two.getTheta());
+    }
+
+    public static double map(double x, double in_min, double in_max, double out_min, double out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 }

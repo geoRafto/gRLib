@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.PurePursuit.Base.Controllers;
 
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Filters.IIRFilter;
 
-public class PIDFEx implements Controller{
+public class PIDFEx {
 
         private IIRFilter filter;
         private double integralWorkingBounds = Double.POSITIVE_INFINITY, integralClippingBounds = Double.POSITIVE_INFINITY;
@@ -33,6 +33,11 @@ public class PIDFEx implements Controller{
          */
         public PIDFEx (double kp, double ki, double kd, double kf, double alpha, double deadzone, double integralWorkingBounds, double integralClippingBounds) {
             this(kp, ki, kd, kf, 0, 0, alpha, deadzone, integralWorkingBounds, integralClippingBounds);
+        }
+
+        public PIDFEx(PIDFExCon cons) {
+            this(cons.getkP(), cons.getkI(), cons.getkD(), cons.getkF(), cons.getAlpha(), cons.getDeadzone(),
+                 cons.getIntegralWorkingBounds(), cons.getIntegralClippingBounds());
         }
 
         /**
@@ -166,15 +171,10 @@ public class PIDFEx implements Controller{
          *
          * Calculates the control value, u(t).
          *
-         * @param pose
-         * @param velocities
+         * @param
          * @return
          */
-        @Override
-        public double calculate(double[] pose, double[] velocities) {
-            double sp = pose[0];
-            double pv = pose[1];
-            setSetPoint(sp);
+        public double calculate(double pv) {
 
             prevErrorVal_filtered = errorVal_p_filtered;
 
@@ -225,6 +225,16 @@ public class PIDFEx implements Controller{
             maxIntegral = integralMax;
         }
 
+        public void setCofficients(PIDFExCon cons) {
+            setP(cons.getkP());
+            setI(cons.getkI());
+            setD(cons.getkD());
+            setF(cons.getkF());
+            setAlpha(cons.getAlpha());
+            setWorkingBounds(cons.getIntegralWorkingBounds());
+            setIntegralClippingBounds(cons.getIntegralClippingBounds());
+        }
+
         // used to clear kI gains
         public void clearTotalError() {
             totalError = 0;
@@ -252,6 +262,10 @@ public class PIDFEx implements Controller{
 
         public void setWorkingBounds(double bound) {
             integralWorkingBounds = bound;
+        }
+
+        public void setIntegralClippingBounds(double bound) {
+            integralClippingBounds = bound;
         }
 
         public double getP() {
