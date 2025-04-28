@@ -49,7 +49,7 @@ public class RobotMovement {
         realThetaStartDistance,
         realThetaEndDistance;
 
-    /*--Logic--*/
+    /*-- Logic --*/
     private boolean
         isFinished,
         nullDetected,
@@ -62,7 +62,7 @@ public class RobotMovement {
     /*-- Temp --*/
     private Pose currentPose = new Pose(0,0,0);
 
-    /*--Constructor--*/
+    /*-- Constructor --*/
     public RobotMovement(RobotMap robotMap, Pose startingPose) {
         this.robotMap = robotMap;
         localizer = new PinpointLocalizer(robotMap, startingPose);
@@ -100,7 +100,7 @@ public class RobotMovement {
         currentPose = localizer.getPose();
     }
 
-    /*--Async Pure Pursuit Logic--*/
+    /*-- Async Pure Pursuit Logic --*/
     public void followPathUpdate(ArrayList <Pose> points) {
 
         Pose motorsPower;
@@ -167,6 +167,7 @@ public class RobotMovement {
                     nullDetected = false;
                     followPoint.setVec(currentTo_Point);
                     break;
+
                 } else {
                     nullDetected = true;
                     currentRadius += currentRadius / 10;
@@ -185,7 +186,7 @@ public class RobotMovement {
         firstCycle = false;
     }
 
-    /*--Control Magic--*/
+    /*-- Control Magic --*/
     public Pose goToPoint(Pose followPose, Pose currentPose, double error, double thetaError) {
         Pose answers = new Pose(0,0,0);
 
@@ -320,7 +321,7 @@ public class RobotMovement {
         return finalTargetTheta;
     }
 
-    /*--Movement--*/
+    /*-- Movement --*/
     public void robotCentricMovement(Pose pose) {
         // Parallel encoder motion Y Axis
         // Perpendicular encoder motion X Axis
@@ -350,7 +351,7 @@ public class RobotMovement {
         isFinished = true;
     }
 
-    /*--Functions--*/
+    /*-- Functions --*/
     public boolean isFinished() {
         return isFinished;
     }
