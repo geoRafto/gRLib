@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.PurePursuit.Base.Math;
 
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.RobotLog;
+
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Pose;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Vector;
 import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants;
@@ -19,7 +22,7 @@ public class MathFunction {
 
     public static double dot(double[] a, double[] b) {
         if (a.length != b.length) {
-            throw new IllegalArgumentException("Vectors must be the same length");
+            RobotLog.e("Vectors must be the same length");
         }
         double sum = 0;
         for (int i = 0; i < a.length; i++) {
@@ -97,6 +100,7 @@ public class MathFunction {
     }
 
     public static double map(double x, double in_min, double in_max, double out_min, double out_max) {
+//        Range.scale();
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 }

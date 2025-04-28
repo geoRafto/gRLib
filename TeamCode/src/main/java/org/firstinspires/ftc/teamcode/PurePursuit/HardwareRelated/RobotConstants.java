@@ -32,7 +32,7 @@ public class RobotConstants {
 
         lowerPIDThreshold_X = 4, // inches from ending target to activate the lower PIDS
         lowerPIDThreshold_Y = 4, // inches from ending target to activate the lower PIDS
-        rotationalLowerPIDThreshold = 0.1, // degrees from ending target to activate the lower PID
+        rotationalLowerPIDThreshold = 1, // degrees from ending target to activate the lower PID
 
         robotX = 15, // robot's size in the x axis
         robotY = 15; // robot's size in the y axis

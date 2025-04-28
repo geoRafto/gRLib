@@ -198,10 +198,10 @@ public class PIDFEx {
                 errorVal_v = 0;
             }
 
-        /*
-        if total error is the integral from 0 to t of e(t')dt', and
-        e(t) = sp - pv, then the total error, E(t), equals sp*t - pv*t.
-         */
+            /*
+            if total error is the integral from 0 to t of e(t')dt', and
+            e(t) = sp - pv, then the total error, E(t), equals sp*t - pv*t.
+             */
             if (errorVal_p > -integralWorkingBounds && errorVal_p < integralWorkingBounds) {
                 totalError += period * (setPoint - measuredValue);
                 totalError = totalError < minIntegral ? minIntegral : Math.min(maxIntegral, totalError);
