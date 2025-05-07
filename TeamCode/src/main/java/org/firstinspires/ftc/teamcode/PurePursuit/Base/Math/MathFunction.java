@@ -9,11 +9,11 @@ import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants
 
 public class MathFunction {
 
-    public static double calculateAngleUnwrap(double angle) {
-        while (angle < -180) {
+    public static double angleWrap(double angle) {
+        while (angle < 0) {
             angle += 360;
         }
-        while (angle > 180) {
+        while (angle > 360) {
             angle -= 360;
         }
 

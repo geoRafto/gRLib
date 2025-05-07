@@ -53,21 +53,21 @@ public class RobotMap {
         rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        /*--IMU--*/
-        imu = hm.get(IMU .class, "external_imu");
-        IMU.Parameters imuParameters = new IMU.Parameters(
-            new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.DOWN
-            )
-        );
-        imu.initialize(imuParameters);
+//        /*--IMU--*/
+//        imu = hm.get(IMU .class, "external_imu");
+//        IMU.Parameters imuParameters = new IMU.Parameters(
+//            new RevHubOrientationOnRobot(
+//                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
+//                RevHubOrientationOnRobot.UsbFacingDirection.DOWN
+//            )
+//        );
+//        imu.initialize(imuParameters);
 
         /*--Encoders--*/
         odo = hm.get(GoBildaPinpointDriver.class, "odometry");
         encoderRes = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
-        forwardEncoderDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
-        strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        forwardEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
 
         /*--Util--*/
         for (LynxModule module : hm.getAll(LynxModule.class)) {
@@ -120,7 +120,7 @@ public class RobotMap {
     }
 
     /*--IMU--*/
-    public IMU getIMU() {
-        return imu;
-    }
+//    public IMU getIMU() {
+//        return imu;
+//    }
 }

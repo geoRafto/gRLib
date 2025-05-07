@@ -97,6 +97,7 @@ public class RobotMovement {
     }
 
     public void updateLocalizer() {
+        localizer.update();
         currentPose = localizer.getPose();
     }
 

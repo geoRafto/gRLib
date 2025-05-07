@@ -7,8 +7,8 @@ public class RobotConstants {
     private static double
 
         /*-- Localization --*/
-        forwardY = 1,
-        strafeX = -2.5,
+        forwardY = -1.2,
+        strafeX = -5.75,
 
         /*-- Robot Movement --*/
         maxVelocity = 50, // max target velocity for the path follow (ticks per second)
