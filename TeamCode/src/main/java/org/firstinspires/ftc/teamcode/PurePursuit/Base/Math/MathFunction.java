@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.PurePursuit.Base.Math;
 
-import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Pose;
@@ -10,14 +9,27 @@ import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants
 public class MathFunction {
 
     public static double angleWrap(double angle) {
-        while (angle < 0) {
-            angle += 360;
-        }
-        while (angle > 360) {
-            angle -= 360;
+        double analogAngle = (angle / 360) % 1;
+
+        if (analogAngle < 0) {
+            return (analogAngle * 360) + 360;
         }
 
-        return angle;
+        return analogAngle * 360;
+
+//        return angle % 360;
+    }
+
+    public static double angleErrorWrap(double angle, double gyroValueDouble) {
+        int minDistIdx, maxIdx;
+
+        maxIdx = (int) Math.ceil(gyroValueDouble / 360);
+        if (Math.abs((maxIdx - 1) * 360 + angle - gyroValueDouble) > Math.abs((maxIdx) * 360 + angle - gyroValueDouble))
+            minDistIdx = maxIdx;
+        else
+            minDistIdx = maxIdx - 1;
+
+        return minDistIdx * 360 + angle;
     }
 
     public static double dot(double[] a, double[] b) {

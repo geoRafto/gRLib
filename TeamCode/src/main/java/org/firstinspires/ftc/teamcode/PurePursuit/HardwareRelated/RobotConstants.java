@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated;
 
+import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Controllers.PIDFExCon;
 
+@Config
 public class RobotConstants {
 
     private static double
@@ -11,9 +13,11 @@ public class RobotConstants {
         strafeX = -5.75,
 
         /*-- Robot Movement --*/
-        maxVelocity = 50, // max target velocity for the path follow (ticks per second)
-        maxAcceleration = 1, // max target acceleration and deceleration for the path follow (ticks per second)
-        maxDecceleration = 1, // max target acceleration and deceleration for the path follow (ticks per second)
+        maxVelocity = 10, // max target velocity for the path follow (ticks per second)
+        maxAcceleration = 7, // max target acceleration and deceleration for the path follow
+    // (ticks per second)
+        maxDecceleration = 7, // max target acceleration and deceleration for the path follow
+    // (ticks per second)
                                 // POSITIVE ONLY
 
         maxRotationalVelocity = 180, // max rotational target velocity for the path follow
@@ -21,18 +25,18 @@ public class RobotConstants {
         maxRotationalDecceleration = 1, // max rotational target acceleration and deceleration for the path follow
                                 // POSITIVE ONLY
 
-        minRadiusRange = 10, // min lookahead distance (inches)
-        maxRadiusRange = 30, // max lookahead distance (inches)
+        minRadiusRange = 1, // min lookahead distance (inches)
+        maxRadiusRange = 5, // max lookahead distance (inches)
 
-        xThreshold = 1, // threshold for X axis in the path following algorithm
-        yThreshold = 1, // threshold for Y axis in the path following algorithm
-        thetaThreshold = 0.002, // threshold for Theta(rotational) axis in the path following algorithm
+        xThreshold = 3, // threshold for X axis in the path following algorithm
+        yThreshold = 3, // threshold for Y axis in the path following algorithm
+        thetaThreshold = 3, // threshold for Theta(rotational) axis in the path following algorithm
 
         hybridThetaDistanceThreshold = 7, // absolut distance threshold of the hybrid theta interpolation
 
         lowerPIDThreshold_X = 4, // inches from ending target to activate the lower PIDS
         lowerPIDThreshold_Y = 4, // inches from ending target to activate the lower PIDS
-        rotationalLowerPIDThreshold = 1, // degrees from ending target to activate the lower PID
+        rotationalLowerPIDThreshold = 0, // degrees from ending target to activate the lower PID
 
         robotX = 15, // robot's size in the x axis
         robotY = 15; // robot's size in the y axis
@@ -41,64 +45,64 @@ public class RobotConstants {
     public static PIDFExCon
 
         upperParallelPID = new PIDFExCon(
-            1,
-            0.01,
-            0.5,
+            0.1,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         ),
         lowerParallelPID = new PIDFExCon(
-            0.2,
-            0.01,
-            0.5,
+            0.05,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         ),
         upperPerpendicularPID = new PIDFExCon(
-            1,
-            0.01,
-            0.5,
+            0.1,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         ),
         lowerPerpendicularPID = new PIDFExCon(
-            0.2,
-            0.01,
-            0.5,
+            0.05,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         ),
         upperRotationalPID = new PIDFExCon(
-            1,
-            0.01,
-            0.5,
+            0.04,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         ),
         lowerRotationalPID = new PIDFExCon(
-            0.2,
             0.01,
-            0.5,
+            0.0,
+            0.0,
             0,
             0.1,
             0.0,
-            0.1,
-            1
+            0.0,
+            0.0
         );
 
     /*-- Meow --*/

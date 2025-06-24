@@ -13,11 +13,10 @@ import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Controllers.PIDFEx;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Pose;
 import org.firstinspires.ftc.teamcode.PurePursuit.Base.Coordination.Vector;
+import org.firstinspires.ftc.teamcode.PurePursuit.Base.Math.MathFunction;
 import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.Localization.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants;
 import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotMap;
-
-import java.util.ArrayList;
 
 public class RobotMovement {
 
@@ -35,7 +34,6 @@ public class RobotMovement {
     /*-- Theta Interpolation --*/
     public enum ThetaInterpolation {
         TANGENTIAL,
-        ANALOGICAL,
         CONSTANT,
         HYBRID
     }
@@ -53,14 +51,15 @@ public class RobotMovement {
     private boolean
         isFinished,
         nullDetected,
-        autoStartingPosition,
-        firstCycle,
         isReversed;
 
     private Vector currentTo_Point;
 
     /*-- Temp --*/
-    private Pose currentPose = new Pose(0,0,0);
+    private Pose
+        currentPose = new Pose(0,0,0),
+        followPoint = new Pose(0, 0, 0),
+        realEnd = new Pose(0, 0, 0);
 
     /*-- Constructor --*/
     public RobotMovement(RobotMap robotMap, Pose startingPose) {
@@ -98,44 +97,38 @@ public class RobotMovement {
 
     public void updateLocalizer() {
         localizer.update();
-        currentPose = localizer.getPose();
+        currentPose.setVec(localizer.getPose().getVec());
+        currentPose.setTheta(MathFunction.angleWrap(localizer.getPose().getTheta()));
     }
 
     /*-- Async Pure Pursuit Logic --*/
-    public void followPathUpdate(ArrayList <Pose> points) {
+    public void followPathUpdate(Pose[] points) {
 
         Pose motorsPower;
-        Pose followPoint = points.get(0);
+        followPoint = points[0];
 
         Pose start;
         Pose end;
 
-        Pose realEnd = points.get(points.size() - 1);
-        Pose realStart = new Pose(0,0,0);
-
-        updateLocalizer();
-        if (autoStartingPosition && firstCycle) {
-            points.add(0, currentPose);
-        }
-
-        if (firstCycle) {
-            realStart = points.get(0);
-        }
+        realEnd = points[points.length - 1];
+        Pose realStart = points[0];
 
         updateLocalizer();
         updateControllerCoefficients();
 
-        realTranslationalEndDistance = Math.hypot(realEnd.getX() - currentPose.getX(),
-                                                  realEnd.getY() - currentPose.getY());
-
+        /*-- Absolut Translational Errors --*/
         realTranslationalStartDistance = Math.hypot(realStart.getX() - currentPose.getX(),
                                                     realStart.getY() - currentPose.getY());
 
+        realTranslationalEndDistance = Math.hypot(realEnd.getX() - currentPose.getX(),
+                                                  realEnd.getY() - currentPose.getY());
+
+        /*-- Absolut Theta Errors --*/
         realThetaStartDistance = realStart.getTheta() - currentPose.getTheta();
 
         realThetaEndDistance = realEnd.getTheta() - currentPose.getTheta();
 
-        double currentRadius = map(
+        double currentRadius = Range.scale(
             Math.hypot(Math.abs(localizer.getVelocity().getX()),
                        Math.abs(localizer.getVelocity().getY())),
             0,
@@ -147,15 +140,13 @@ public class RobotMovement {
             isFinished = true;
         }
 
-        if (realTranslationalEndDistance <= currentRadius) {
-
+        if (realTranslationalEndDistance <= currentRadius || isFinished()) {
             currentTo_Point = realEnd.getVec();
 
         } else {
-
-            for (int i = points.size() - 2; i >= 0; --i) {
-                start = points.get(i);
-                end = points.get(i + 1);
+            for (int i = points.length - 1; i > 0; --i) {
+                end = points[i];
+                start = points[i - 1];
 
                 currentTo_Point = calculateCircleIntersection(
                     currentPose.getVec(),
@@ -171,54 +162,61 @@ public class RobotMovement {
 
                 } else {
                     nullDetected = true;
-                    currentRadius += currentRadius / 10;
                 }
             }
         }
 
-        updateControllerCoefficients(
-            calculateCurrentCoefficients(realTranslationalStartDistance, realTranslationalEndDistance,
-                                         realThetaStartDistance, realThetaEndDistance)
-        );
-        followPoint.setTheta(calculateCurrentTheta(currentPose, currentTo_Point, realEnd));
-        motorsPower = goToPoint(followPoint, currentPose, realTranslationalEndDistance, realThetaEndDistance);
-        robotCentricMovement(motorsPower);
+        if (currentTo_Point != null) {
+            updateControllerCoefficients(
+                calculateCurrentCoefficients(realTranslationalStartDistance, realTranslationalEndDistance,
+                                             realThetaStartDistance, realThetaEndDistance)
+            );
 
-        firstCycle = false;
+            double theta = calculateCurrentTheta(currentPose, currentTo_Point, realEnd,
+                                                 realTranslationalEndDistance);
+
+            followPoint.setTheta(theta);
+
+            motorsPower = goToPoint(followPoint, currentPose, realTranslationalEndDistance, realThetaEndDistance);
+            fieldCentricMovement(turnToRobotCentric(motorsPower, currentPose));
+        }
     }
 
     /*-- Control Magic --*/
-    public Pose goToPoint(Pose followPose, Pose currentPose, double error, double thetaError) {
+    public Pose goToPoint(Pose pose, Pose currentPose, double error, double thetaError) {
         Pose answers = new Pose(0,0,0);
 
-        double relative_x =
-            currentPose.getX() + (followPose.getX() - currentPose.getX()) / Math.cos(currentPose.getTheta());
-        double relative_y =
-            currentPose.getY() + (followPose.getY() - currentPose.getY()) * Math.tan(currentPose.getTheta());
+        Pose fixedFollowPose = new Pose(pose.getVec(),
+                                   MathFunction.angleErrorWrap(pose.getTheta(),
+                                                               localizer.getPose().getTheta()));
 
-        upperParallelPID.setSetPoint(relative_x);
-        lowerParallelPID.setSetPoint(relative_x);
-        upperPerpendicularPID.setSetPoint(relative_y);
-        lowerPerpendicularPID.setSetPoint(relative_y);
-        upperRotationalPID.setSetPoint(followPose.getTheta());
-        lowerRotationalPID.setSetPoint(followPose.getTheta());
+        Pose fixedCurrentPose = new Pose(currentPose.getVec(),
+                                        MathFunction.angleErrorWrap(currentPose.getTheta(),
+                                                                    localizer.getPose().getTheta()));
+
+        upperParallelPID.setSetPoint(fixedFollowPose.getX());
+        lowerParallelPID.setSetPoint(fixedFollowPose.getX());
+        upperPerpendicularPID.setSetPoint(fixedFollowPose.getY());
+        lowerPerpendicularPID.setSetPoint(fixedFollowPose.getY());
+        upperRotationalPID.setSetPoint(fixedFollowPose.getTheta());
+        lowerRotationalPID.setSetPoint(fixedFollowPose.getTheta());
 
         if (error <= RobotConstants.getLowerPIDThreshold_X()) {
-            answers.setX(lowerParallelPID.calculate(currentPose.getX()));
+            answers.setX(lowerParallelPID.calculate(fixedCurrentPose.getX()));
         } else {
-            answers.setX(upperParallelPID.calculate(currentPose.getX()));
+            answers.setX(upperParallelPID.calculate(fixedCurrentPose.getX()));
         }
 
         if (error <= RobotConstants.getLowerPIDThreshold_Y()) {
-            answers.setY(lowerPerpendicularPID.calculate(currentPose.getY()));
+            answers.setY(lowerPerpendicularPID.calculate(fixedCurrentPose.getY()));
         } else {
-            answers.setY(upperPerpendicularPID.calculate(currentPose.getY()));
+            answers.setY(upperPerpendicularPID.calculate(fixedCurrentPose.getY()));
         }
 
-        if (thetaError <= RobotConstants.getRotationalLowerPIDThreshold()) {
+        if (Math.abs(thetaError) <= RobotConstants.getRotationalLowerPIDThreshold()) {
             answers.setTheta(lowerRotationalPID.calculate(currentPose.getTheta()));
         } else {
-            answers.setTheta(upperRotationalPID.calculate(currentPose.getTheta()));
+            answers.setTheta(upperRotationalPID.calculate(fixedCurrentPose.getTheta()));
         }
 
         return answers;
@@ -285,7 +283,8 @@ public class RobotMovement {
         return answer;
     }
 
-    private double calculateCurrentTheta(Pose currentPose, Vector currentTo_Point, Pose realEnd) {
+    private double calculateCurrentTheta(Pose currentPose, Vector currentTo_Point, Pose realEnd,
+                                         double realTranslationalEndDistance) {
         switch (thetaInterpolation) {
             case CONSTANT:
                 break;
@@ -297,14 +296,8 @@ public class RobotMovement {
                 ));
                 break;
 
-            case ANALOGICAL:
-                // Under construction for now
-                break;
-
             case HYBRID:
-                if (Math.hypot(currentTo_Point.getX() - currentPose.getX(),
-                              currentTo_Point.getY() - currentPose.getY()) <=
-                    RobotConstants.getHybridThetaDistanceThreshold()) {
+                if (realTranslationalEndDistance <= RobotConstants.getHybridThetaDistanceThreshold()) {
                     finalTargetTheta = realEnd.getTheta();
                 } else {
                     finalTargetTheta = Math.toDegrees(Math.atan2(
@@ -315,15 +308,30 @@ public class RobotMovement {
                 break;
         }
 
+        ///////
         if (isReversed) {
-            finalTargetTheta = finalTargetTheta - 180;
+            finalTargetTheta = MathFunction.angleWrap(finalTargetTheta - 180);
         }
 
         return finalTargetTheta;
     }
 
+    /*-- Util --*/
+    public Pose turnToRobotCentric(Pose pose, Pose currentPose) {
+        Pose fixedPose = new Pose(pose.getY(), pose.getX(), -pose.getTheta());
+
+        double fixedTheta = Math.toRadians(currentPose.getTheta());
+
+        double rotX =
+            fixedPose.getX() * Math.cos(fixedTheta) - fixedPose.getY() * Math.sin(fixedTheta);
+        double rotY =
+            fixedPose.getX() * Math.sin(fixedTheta) + fixedPose.getY() * Math.cos(fixedTheta);
+
+        return new Pose(-rotX, rotY, fixedPose.getTheta());
+    }
+
     /*-- Movement --*/
-    public void robotCentricMovement(Pose pose) {
+    public void fieldCentricMovement (Pose pose) {
         // Parallel encoder motion Y Axis
         // Perpendicular encoder motion X Axis
         // Rotational IMU motion Theta
@@ -361,23 +369,9 @@ public class RobotMovement {
         return nullDetected;
     }
 
-    public void newPath() {
-        isFinished = false;
-        firstCycle = true;
-
-        /*-- Default System Settings --*/
-        setThetaInterpolation(ThetaInterpolation.HYBRID);
-        autoStartingPosition = true;
-    }
-
-    public void setAutoStartingPosition(boolean set) {
-        autoStartingPosition = set;
-    }
-
     public void setThetaInterpolation(ThetaInterpolation set) {
         if (set == ThetaInterpolation.CONSTANT) {
-            RobotLog.e("Connot set Constant Interpolation from this function, use: " +
-                           "setConstantThetaInterpolation()");
+            throw new RuntimeException("Connot set Constant Interpolation from this function");
         } else {
             thetaInterpolation = set;
         }
@@ -419,5 +413,28 @@ public class RobotMovement {
 
     public void setReversed(boolean set) {
         isReversed = set;
+    }
+
+    public Pose getFollowPoint () {
+        return followPoint;
+    }
+
+    public Pose getRealEnd() {
+        return realEnd;
+    }
+
+    public void reset() {
+        isFinished = false;
+        nullDetected = false;
+        followPoint = new Pose(0, 0, 0);
+        realEnd = new Pose(0, 0, 0);
+        currentTo_Point = null;
+
+        upperParallelPID.reset();
+        lowerParallelPID.reset();
+        upperPerpendicularPID.reset();
+        lowerPerpendicularPID.reset();
+        upperRotationalPID.reset();
+        lowerRotationalPID.reset();
     }
 }
